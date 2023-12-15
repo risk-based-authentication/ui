@@ -1,12 +1,11 @@
 import React from "react";
+
 import Payment from "./components/payment/Payment.tsx";
 
-function App() {
-  return (
-    <div>
-      <Payment />
-    </div>
-  );
-}
+const App = () => {
+  return   (
+<Payment />
+   );
+};
 
 export default App;
