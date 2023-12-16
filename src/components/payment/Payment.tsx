@@ -11,7 +11,8 @@ import {
   Select,
   ConfigProvider,
 } from "antd";
-import "./style.css";
+import "../style/paymentStyle.css";
+import { Link } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
@@ -21,7 +22,7 @@ export default function Payment() {
       <Title level={2} className="title">
         Payment
       </Title>
-      <Text className="subtitle">Please enter your card details</Text>
+      <Text className="description">Please enter your card details</Text>
     </div>
   );
 
@@ -104,7 +105,7 @@ export default function Payment() {
                     block
                     style={{ borderRadius: 15, backgroundColor: "#005B96" }}
                   >
-                    Submit
+                    <Link to="/verification">Submit</Link>
                   </Button>
                 </Form>
               </Card>
