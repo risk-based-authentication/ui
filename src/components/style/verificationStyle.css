@@ -1,0 +1,47 @@
+.container {
+    max-width: 410px;
+    margin: auto;
+  }
+  
+  .title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .title {
+    text-align: center;
+    color: #626262;
+    font-size: 30px;
+    letter-spacing: -0.04em;
+  }
+  
+  .description {
+    text-align: center;
+    letter-spacing: -0.02em;
+    font-weight: 350;
+    font-size: 1.1em;
+  }
+  
+  .description-2 {
+    text-align: center;
+    letter-spacing: -0.02em;
+    font-weight: 350;
+    font-size: 20px;
+  }
+  
+  .verification-code {
+    margin-top: 50px;
+  }
+  
+  .highlighted-square {
+    padding: 20px;
+    background-color: #fcfcfc;
+    border: 2px solid #005b96;
+    border-radius: 25px;
+    width: 130%;
+    margin-left: -15%;
+  }
+  
