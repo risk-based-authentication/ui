@@ -21,7 +21,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "upload": "powershell \"if (Test-Path build\\media) { Remove-Item -Recurse -Force build\\media }; if (Test-Path build\\assets) { Remove-Item -Recurse -Force build\\assets }\" && aws s3 rm s3://rba.github.rocks/static/ --recursive --profile rba && aws s3 sync build s3://rba.github.rocks/ --profile rba",
+    "firstUpload": "aws s3 rm s3://rba.github.rocks/static/ --recursive --profile rba && aws s3 sync build s3://rba.github.rocks/ --profile rba"
   },
   "eslintConfig": {
     "extends": [
