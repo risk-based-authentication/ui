@@ -111,7 +111,6 @@ export default function Verification() {
                                 borderRadius: 10,
                               }}
                               maxLength={1}
-                              disabled
                             />
                           ))}
                         </div>
