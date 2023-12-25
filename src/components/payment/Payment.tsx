@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Row,
   Col,
@@ -12,22 +12,73 @@ import {
   ConfigProvider,
 } from "antd";
 import "../style/paymentStyle.css";
-import { getApiData } from "../apiService.ts";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const { Title, Text } = Typography;
 
-export default function Payment() {
-  const [apiData, setApiData] = useState(null);
+const apiUrl = "https://j3a4lvmip9.execute-api.eu-north-1.amazonaws.com/p";
 
-  const handleButtonClick = async () => {
+export const getApiData = async (cardNumber: string): Promise<any> => {
+  const requestBody = {
+    input: JSON.stringify({
+      queryStringParameters: { cardNumber: cardNumber },
+    }),
+    name: "x",
+    stateMachineArn:
+      "arn:aws:states:eu-north-1:915557972977:stateMachine:MyStateMachine-2a361ayvt",
+  };
+
+  try {
+    const response = await axios.post(
+      `${apiUrl}/execution?cardNumber=${encodeURIComponent(cardNumber)}`,
+      requestBody,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("API Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
+  }
+};
+
+export default function Payment() {
+  const [form] = Form.useForm();
+  const [apiData, setApiData] = useState(null);
+  const navigate = useNavigate();
+
+  const onFinish = async (values) => {
     try {
-      const data = await getApiData();
-      setApiData(data);
-      console.log("API Response:", data);
+      const data = await getApiData(values.cardnumber);
+
+      if (data && data.output) {
+        const apires = JSON.parse(data.output);
+        const id = apires.id;
+        const status = apires.status;
+        if (id) {
+          localStorage.setItem("paymentId", id);
+        }
+        if (status) {
+          setApiData(status);
+        }
+      }
     } catch (error) {
       console.error("Error:", error.message);
     }
   };
+
+  useEffect(() => {
+    if (apiData === "SUCCEEDED") {
+      navigate("/success");
+    } else if (apiData === "FAILED") {
+      navigate("/verification");
+    }
+  }, [apiData, navigate]);
 
   const CardTitle = (
     <div className="title-container">
@@ -73,13 +124,7 @@ export default function Payment() {
                 headStyle={{ borderBottom: 0, marginTop: 12 }}
                 className="highlighted-square"
               >
-                <Form
-                  layout="vertical"
-                  requiredMark={false}
-                  initialValues={{
-                    remember: false,
-                  }}
-                >
+                <Form form={form} layout="vertical" onFinish={onFinish}>
                   <Form.Item
                     name="cardnumber"
                     label="Card Number"
@@ -90,7 +135,6 @@ export default function Payment() {
                   <Form.Item name="cardholder" label="Card Holder">
                     <Input size="large" />
                   </Form.Item>
-
                   <Form.Item name="Expiration Date" label="Expiration Date">
                     <Form.Item noStyle>
                       <Row gutter={8}>
@@ -128,14 +172,13 @@ export default function Payment() {
                         </Col>
                       </Row>
                     </Form.Item>
-                  </Form.Item>
+                  </Form.Item>{" "}
                   <Button
                     type="primary"
                     size="large"
                     htmlType="submit"
                     block
                     style={{ borderRadius: 15, backgroundColor: "#005B96" }}
-                    onClick={handleButtonClick}
                   >
                     Submit
                   </Button>

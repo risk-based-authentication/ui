@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useState, useEffect } from "react";
 import {
   Row,
   Col,
@@ -10,23 +10,52 @@ import {
   Button,
   ConfigProvider,
 } from "antd";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../style/verificationStyle.css";
 
 const { Title, Text } = Typography;
+const apiUrl = "https://j3a4lvmip9.execute-api.eu-north-1.amazonaws.com/p";
 
 export default function Verification() {
-  const CardTitle = (
-    <div className="title-container">
-      <Title level={2} className="title">
-        Verification
-      </Title>
-      <Text className="description">Please enter the OTP</Text>
-    </div>
-  );
-
   const [verificationCodes, setVerificationCodes] = useState<string[]>(
     Array(6).fill("")
   );
+  const [apiData, setApiData] = useState(null);
+  const [id, setId] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedId = localStorage.getItem("paymentId");
+    setId(storedId);
+  }, []);
+
+  const getApiData = async (verificationCode: string): Promise<any> => {
+    if (!id) {
+      console.error("Payment ID is not available");
+      return;
+    }
+
+    const requestBody = {
+      input: JSON.stringify({ otp: verificationCode, id: id }),
+      name: "x",
+      stateMachineArn:
+        "arn:aws:states:eu-north-1:915557972977:stateMachine:MyStateMachine-zuedwtw27",
+    };
+
+    try {
+      const response = await axios.post(apiUrl + "/execution", requestBody, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("API Response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  };
   const inputRefs: React.RefObject<Input>[] = Array(6)
     .fill(null)
     .map(() => React.createRef<Input>());
@@ -34,11 +63,6 @@ export default function Verification() {
   const handleInputChange = (value: string, index: number) => {
     const newVerificationCodes = [...verificationCodes];
     newVerificationCodes[index] = value;
-
-    if (value && index < verificationCodes.length - 1) {
-      inputRefs[index + 1].current?.focus();
-    }
-
     setVerificationCodes(newVerificationCodes);
   };
 
@@ -50,6 +74,33 @@ export default function Verification() {
       inputRefs[index - 1].current?.focus();
     }
   };
+
+  const handleSubmit = async () => {
+    const verificationCode = verificationCodes.join("");
+    try {
+      const data = await getApiData(verificationCode);
+      setApiData(data.status);
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  };
+
+  const CardTitle = (
+    <div className="title-container">
+      <Title level={2} className="title">
+        Verification
+      </Title>
+      <Text className="description">Please enter the OTP</Text>
+    </div>
+  );
+
+  useEffect(() => {
+    if (apiData === "SUCCEEDED") {
+      navigate("/success");
+    } else if (apiData === "FAILED") {
+      navigate("/fail");
+    }
+  }, [apiData, navigate]);
 
   return (
     <ConfigProvider
@@ -118,9 +169,9 @@ export default function Verification() {
                     </Row>
                   </Form.Item>
                   <Button
+                    onClick={handleSubmit}
                     type="primary"
                     size="large"
-                    htmlType="submit"
                     block
                     style={{ borderRadius: 15, backgroundColor: "#005B96" }}
                   >
